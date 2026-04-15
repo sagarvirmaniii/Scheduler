@@ -66,7 +66,7 @@ A full-stack scheduling platform that lets you share a booking link, set your av
 |---------|---------|
 | Vercel | Frontend hosting |
 | Render | Backend hosting |
-| Railway / PlanetScale | MySQL database hosting |
+| Railway | MySQL database hosting |
 
 ---
 
