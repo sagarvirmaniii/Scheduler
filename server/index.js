@@ -29,11 +29,19 @@ app.get('/', (req, res) => {
 // ✅ DB Test route (BigInt fix included)
 app.get('/test-db', async (req, res) => {
   try {
-    const result = await prisma.$queryRaw`SELECT 1`;
+    const result = await prisma.$queryRaw`SELECT 1 as value`;
+
+    // ✅ convert BigInt safely
+    const safeResult = result.map(row => ({
+      ...row,
+      value: Number(row.value)
+    }));
+
     res.json({
       success: true,
-      result: JSON.parse(JSON.stringify(result))
+      result: safeResult
     });
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });
