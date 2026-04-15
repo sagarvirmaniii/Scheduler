@@ -1,0 +1,97 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String
+  username  String   @unique
+  timezone  String   @default("UTC")
+  createdAt DateTime @default(now())
+
+  eventTypes       EventType[]
+  availabilityDays AvailabilityDay[]
+
+  @@map("users")
+}
+
+model EventType {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  duration    Int
+  slug        String   @unique
+  isActive    Boolean  @default(true)
+  bufferTime  Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId   String
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bookings Booking[]
+
+  @@index([userId])
+  @@index([slug])
+  @@map("event_types")
+}
+
+model AvailabilityDay {
+  id        String  @id @default(cuid())
+  dayOfWeek Int
+  isActive  Boolean @default(true)
+
+  userId    String
+  user      User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  timeSlots AvailabilityTimeSlot[]
+
+  @@unique([userId, dayOfWeek])
+  @@index([userId])
+  @@map("availability_days")
+}
+
+model AvailabilityTimeSlot {
+  id        String @id @default(cuid())
+  startTime String
+  endTime   String
+
+  availabilityDayId String
+  availabilityDay   AvailabilityDay @relation(fields: [availabilityDayId], references: [id], onDelete: Cascade)
+
+  @@index([availabilityDayId])
+  @@map("availability_time_slots")
+}
+
+model Booking {
+  id         String        @id @default(cuid())
+  title      String
+  guestName  String
+  guestEmail String
+  startTime  DateTime
+  endTime    DateTime
+  status     BookingStatus @default(CONFIRMED)
+  timezone   String        @default("UTC")
+  notes      String?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  eventTypeId String
+  eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+
+  @@index([eventTypeId])
+  @@index([startTime])
+  @@index([guestEmail])
+  @@map("bookings")
+}
+
+enum BookingStatus {
+  CONFIRMED
+  CANCELLED
+  RESCHEDULED
+}
