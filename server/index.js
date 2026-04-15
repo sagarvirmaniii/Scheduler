@@ -18,13 +18,22 @@ app.use('/api/availability', require('./routes/availability'));
 app.use('/api/bookings', require('./routes/bookings'));
 app.use('/api/slots', require('./routes/slots'));
 
+// ✅ Health route
 app.get('/health', (_, res) => res.json({ status: 'ok' }));
 
-// ✅ DB TEST ROUTE (IMPORTANT)
+// ✅ Root route (no more "Cannot GET /")
+app.get('/', (req, res) => {
+  res.send('Backend is running');
+});
+
+// ✅ DB Test route (BigInt fix included)
 app.get('/test-db', async (req, res) => {
   try {
     const result = await prisma.$queryRaw`SELECT 1`;
-    res.json({ success: true, result });
+    res.json({
+      success: true,
+      result: JSON.parse(JSON.stringify(result))
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });
