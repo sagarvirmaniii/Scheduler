@@ -1,8 +1,10 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const { PrismaClient } = require('@prisma/client'); // ✅ added
 
 const app = express();
+const prisma = new PrismaClient(); // ✅ added
 
 app.use(cors({
   origin: process.env.CLIENT_URL || 'http://localhost:5173',
@@ -17,6 +19,17 @@ app.use('/api/bookings', require('./routes/bookings'));
 app.use('/api/slots', require('./routes/slots'));
 
 app.get('/health', (_, res) => res.json({ status: 'ok' }));
+
+// ✅ DB TEST ROUTE (IMPORTANT)
+app.get('/test-db', async (req, res) => {
+  try {
+    const result = await prisma.$queryRaw`SELECT 1`;
+    res.json({ success: true, result });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
 
 app.use((err, req, res, next) => {
   console.error(err);
